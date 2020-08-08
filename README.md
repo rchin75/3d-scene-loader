@@ -14,12 +14,22 @@ Note: this is my hobby project. For informational purposes only. Use at your own
 npm install
 ```
 
-### Compiles and hot-reloads for development
+### Compiles and hot-reloads the example for development
 ```
 npm run serve
 ```
 
-### Compiles and minifies for production
+### Compiles and minifies the library for production
 ```
 npm run build
 ```
+### Compiles and minifies the example
+```
+npm run build-example
+```
+To try the example create two folders under the project root folder:
+
+- models: add your model(s) here. Models should be in GLTF format.
+- skyboxes: add your skybox here.
+
+Then refer to these in the configuration (in main.js).
