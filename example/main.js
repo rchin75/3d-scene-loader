@@ -13,6 +13,7 @@ const config = {
     //canvasID : 'canvas',
     backgroundColor: 0xFFFFFF,
     models: [
+        /*
         {
             file: './../models/medieval_house/scene.gltf',
             position: [0,0,0],
@@ -20,6 +21,16 @@ const config = {
             rotateY: 0,
             rotateX: 0,
             rotateZ: 0
+        },
+         */
+        {
+            file: './../models/TestCube01/TestCube02.gltf',
+            position: [0,0,0],
+            scale: 0.5,
+            rotateY: 0,
+            rotateX: 0,
+            rotateZ: 0,
+            animate: true
         }
     ],
     ambientLight: {

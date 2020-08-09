@@ -7,6 +7,10 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
  */
 export default function createScene(config) {
     const scene = new THREE.Scene();
+    // Mixers are used to animate GLTF meshes.
+    const mixers = [];
+    const clock = new THREE.Clock();
+
     scene.background = new THREE.Color((config && config.backgroundColor) ? config.backgroundColor : 0xffffff );
 
     // Renderer
@@ -47,11 +51,18 @@ export default function createScene(config) {
     const controls = new OrbitControls(camera, canvas);
     controls.target.set(0, 0, 0);
 
+    // Point lights
+    if (config && config.pointLights && config.pointLights.length > 0) {
+        config.pointLights.forEach(light => {
+            addPointLight(light, scene);
+        });
+    }
+
     // Directional lights
     if (config && config.directionalLights && config.directionalLights.length > 0) {
         config.directionalLights.forEach(light => {
             addDirectionalLight(light, scene);
-        })
+        });
     } else {
         addDirectionalLight(null, scene);
     }
@@ -62,7 +73,7 @@ export default function createScene(config) {
     // Load the models.
     if (config && config.models && config.models.length > 0) {
         config.models.forEach(model => {
-            loadModel(model, scene);
+            loadModel(model, scene, mixers);
         })
     } else {
         scene.add(createBox());
@@ -90,10 +101,31 @@ export default function createScene(config) {
     const animate = function () {
         requestAnimationFrame(animate);
 
+        // Update the animation if GLTF meshes.
+        const delta = clock.getDelta();
+        mixers.forEach(mixer => {
+            mixer.update( delta );
+        });
+
         controls.update();
         renderer.render(scene, camera);
     };
     animate();
+}
+
+/**
+ * Adds a point light.
+ * @param light The light configuration.
+ * @param scene The scene.
+ */
+function addPointLight(light, scene) {
+    const color = light.color ? light.color : 0xFFFFFF;
+    const intensity = light.intensity ? light.intensity : 1;
+    const distance = light.distance ? light.distance : 2;
+
+    const lightInstance = new THREE.PointLight(color, intensity, distance);
+    lightInstance.position.set(...light.position);
+    scene.add( lightInstance );
 }
 
 /**
@@ -146,7 +178,7 @@ function createBox() {
  * @param model The model to load.
  * @param scene The scene.
  */
-function loadModel(model, scene) {
+function loadModel(model, scene, mixers) {
     const loader = new GLTFLoader();
     loader.load( model.file , function ( gltf ) {
         // Position the model.
@@ -173,6 +205,16 @@ function loadModel(model, scene) {
 
         // Add to the scene.
         scene.add( gltf.scene );
+
+        // Animation
+        if (model.animate) {
+            const mixer = new THREE.AnimationMixer( gltf.scene );
+            mixers.push(mixer);
+            //const action = mixer.clipAction( gltf.animations[ 0 ] );
+            //action.play();
+            gltf.animations.forEach((clip) => {mixer.clipAction(clip).play(); });
+        }
+
     }, undefined, function ( error ) {
         console.error( error );
     } );
