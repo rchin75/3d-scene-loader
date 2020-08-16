@@ -27,9 +27,13 @@ npm run build
 ```
 npm run build-example
 ```
-To try the example create two folders under the project root folder:
 
-- models: add your model(s) here. Models should be in GLTF format.
-- skyboxes: add your skybox here.
+![Sample scene](./example.png)
 
-Then refer to these in the configuration (in main.js).
+The example uses data from the following folders:
+
+- models: Models should be in GLTF format.
+- skyboxes: A skybox consists of 6 images: top, botton, left, right, front, back.
+
+You can add your own models and skyboxes there,
+then refer to these in the configuration (in main.js).
