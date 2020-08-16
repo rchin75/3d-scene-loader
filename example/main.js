@@ -14,6 +14,15 @@ const config = {
     backgroundColor: 0xFFFFFF,
     models: [
         {
+            file: './../models/ground/ground.gltf',
+            position: [0,0,0],
+            scale: 0.5,
+            rotateY: 0,
+            rotateX: 0,
+            rotateZ: 0,
+            animate: false
+        },
+        {
             file: './../models/windmill/windmill01.gltf',
             position: [0,0,0],
             scale: 0.5,
@@ -65,7 +74,8 @@ const config = {
     },
     floor: {
         color: 0x00FF00,
-        size: 10000
+        size: 10000,
+        level: -0.1
     },
     camera: {
         position: [0,0,30],

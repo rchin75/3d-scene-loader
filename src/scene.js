@@ -260,11 +260,13 @@ function createSkybox(skybox, scene) {
 function addFloor(floor, scene) {
     const size = floor.size ? floor.size : 1000
     const color = floor.color ? floor.color : 0x00FF00;
+    const level = floor.level ? floor.level : 0;
 
     const geometry = new THREE.PlaneGeometry( size, size, 1, 1 );
     const material = new THREE.MeshBasicMaterial( {color: color, side: THREE.DoubleSide} );
     const plane = new THREE.Mesh( geometry, material );
     plane.rotateX(0.5*Math.PI);
+    plane.position.set(0, level, 0);
     scene.add( plane );
 }
 
