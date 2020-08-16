@@ -3,7 +3,8 @@ node_modules
 /dist-example
 /models/third-party
 /models/test
-/skyboxes
+/skyboxes/third-party
+/skyboxes/test
 
 # local env files
 .env.local

@@ -62,18 +62,16 @@ const config = {
             target: [0,0,0],
         }
     ],
-    /*
     skybox: {
         size: 10000,
-        folder: './../skyboxes/Daylight Box_Pieces/',
-        frontSide: 'Daylight Box_Front.bmp',
-        backSide: 'Daylight Box_Back.bmp',
-        upSide: 'Daylight Box_Top.bmp',
-        downSide: 'Daylight Box_Bottom.bmp',
-        rightSide: 'Daylight Box_Right.bmp',
-        leftSide: 'Daylight Box_Left.bmp'
+        folder: './../skyboxes/SimpleSky/',
+        frontSide: 'front.jpg',
+        backSide: 'back.jpg',
+        upSide: 'top.jpg',
+        downSide: 'bottom.jpg',
+        rightSide: 'right.jpg',
+        leftSide: 'left.jpg'
     },
-     */
     floor: {
         color: 0x00FF00,
         size: 10000,
