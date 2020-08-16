@@ -11,7 +11,7 @@ import createScene from "./../src/scene";
 
 const config = {
     //canvasID : 'canvas',
-    backgroundColor: 0xFFFFFF,
+    backgroundColor: 0xAACCFF,
     models: [
         {
             file: './../models/ground/ground.gltf',
@@ -62,6 +62,7 @@ const config = {
             target: [0,0,0],
         }
     ],
+    /*
     skybox: {
         size: 10000,
         folder: './../skyboxes/Daylight Box_Pieces/',
@@ -72,6 +73,7 @@ const config = {
         rightSide: 'Daylight Box_Right.bmp',
         leftSide: 'Daylight Box_Left.bmp'
     },
+     */
     floor: {
         color: 0x00FF00,
         size: 10000,
