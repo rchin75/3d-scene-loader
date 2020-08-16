@@ -1,7 +1,8 @@
 .DS_Store
 node_modules
 /dist-example
-/models
+/models/third-party
+/models/test
 /skyboxes
 
 # local env files

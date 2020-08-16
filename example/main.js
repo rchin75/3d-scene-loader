@@ -13,29 +13,37 @@ const config = {
     //canvasID : 'canvas',
     backgroundColor: 0xFFFFFF,
     models: [
-        /*
         {
-            file: './../models/medieval_house/scene.gltf',
-            position: [0,0,0],
-            scale: 0.5,
-            rotateY: 0,
-            rotateX: 0,
-            rotateZ: 0
-        },
-         */
-        {
-            file: './../models/TestCube01/TestCube02.gltf',
+            file: './../models/windmill/windmill01.gltf',
             position: [0,0,0],
             scale: 0.5,
             rotateY: 0,
             rotateX: 0,
             rotateZ: 0,
             animate: true
-        }
+        },
+        {
+            file: './../models/windmill/windmill01.gltf',
+            position: [5,0,0],
+            scale: 0.5,
+            rotateY: 0,
+            rotateX: 0,
+            rotateZ: 0,
+            animate: true
+        },
+        {
+            file: './../models/windmill/windmill01.gltf',
+            position: [-5,0,1],
+            scale: 0.5,
+            rotateY: 0,
+            rotateX: 0,
+            rotateZ: 0,
+            animate: true
+        },
     ],
     ambientLight: {
         color: 0xFFFFFF,
-        intensity: 0.5
+        intensity: 0.8
     },
     directionalLights: [
         {
