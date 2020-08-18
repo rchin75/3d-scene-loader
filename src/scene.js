@@ -190,6 +190,7 @@ function createBox() {
  * Loads a model.
  * @param model The model to load.
  * @param scene The scene.
+ * @param mixers The array of mixers.
  * @param index The model index.
  * @param cb Callback function to keep track of progress.
  */
@@ -267,7 +268,9 @@ function updateTotalProgress(modelFile, numberOfModels, progress, totalProgress)
     totalProgress['_percentages'][progress.index] = progress.percentage;
     let total = 0;
     for (let index1 in totalProgress['_percentages']) {
-        total += totalProgress['_percentages'][index1];
+        if (totalProgress['_percentages'].hasOwnProperty(index1)) {
+            total += totalProgress['_percentages'][index1];
+        }
     }
     totalProgress.percentage = total / numberOfModels;
 
