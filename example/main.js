@@ -85,7 +85,11 @@ const config = {
     axis: true
 }
 
-createScene(config);
+function onProgress(progress) {
+    console.log('onProgress', JSON.stringify(progress));
+}
+
+createScene(config, onProgress);
 
 // Hide the canvas if it is not used to render the scene.
 if (!config.canvasID) {

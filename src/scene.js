@@ -5,7 +5,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 /**
  * Creates the scene.
  */
-export default function createScene(config) {
+export default function createScene(config, onProgress) {
     const scene = new THREE.Scene();
     // Mixers are used to animate GLTF meshes.
     const mixers = [];
@@ -72,8 +72,21 @@ export default function createScene(config) {
 
     // Load the models.
     if (config && config.models && config.models.length > 0) {
+        let index = 0;
+        const totalProgress = {
+            percentage: 0,
+            errors: [],
+            done: false
+        }
         config.models.forEach(model => {
-            loadModel(model, scene, mixers);
+            loadModel(model, scene, mixers, index, progress => {
+                // Invoke onProgress if provided.
+                if (onProgress) {
+                    updateTotalProgress(model.file, config.models.length, progress, totalProgress);
+                    onProgress(totalProgress);
+                }
+            });
+            index++;
         })
     } else {
         scene.add(createBox());
@@ -177,9 +190,17 @@ function createBox() {
  * Loads a model.
  * @param model The model to load.
  * @param scene The scene.
+ * @param index The model index.
+ * @param cb Callback function to keep track of progress.
  */
-function loadModel(model, scene, mixers) {
+function loadModel(model, scene, mixers, index, cb) {
     const loader = new GLTFLoader();
+    const progress = {
+        model: model.file,
+        index: index,
+        percentage: 0,
+        error: null
+    };
     loader.load( model.file , function ( gltf ) {
         // Position the model.
         if (model.position) {
@@ -214,10 +235,50 @@ function loadModel(model, scene, mixers) {
             //action.play();
             gltf.animations.forEach((clip) => {mixer.clipAction(clip).play(); });
         }
-
-    }, undefined, function ( error ) {
+    }, function (xhr) {
+        progress.percentage = xhr.loaded / xhr.total;
+        if (cb) {
+            cb(progress);
+        }
+    },
+        function ( error ) {
         console.error( error );
-    } );
+        // We set progress to 100% even though loading failed. So we know that this attempt was completed.
+        progress.percentage = 1;
+        progress.error = 'Failed to load model';
+        if (cb) {
+            cb(progress);
+        }
+    });
+}
+
+/**
+ * Updates to total progress of loading all the models.
+ * @param modelFile The model file name of the models that is currently being loaded.
+ * @param numberOfModels The total number of model to be loaded.
+ * @param progress The progress of loading the current model (0 to 1)
+ * @param totalProgress The total progress object to update.
+ */
+function updateTotalProgress(modelFile, numberOfModels, progress, totalProgress) {
+    // Keeping track of the progress
+    if (!totalProgress.hasOwnProperty('_percentages')) {
+        totalProgress['_percentages'] = {};
+    }
+    totalProgress['_percentages'][progress.index] = progress.percentage;
+    let total = 0;
+    for (let index1 in totalProgress['_percentages']) {
+        total += totalProgress['_percentages'][index1];
+    }
+    totalProgress.percentage = total / numberOfModels;
+
+    if (progress.error) {
+        totalProgress.errors.push({model: modelFile, error: progress.error});
+    }
+
+    // If everything is loaded then we are done.
+    if (totalProgress.percentage === 1) {
+        totalProgress.done = true;
+    }
 }
 
 /**
