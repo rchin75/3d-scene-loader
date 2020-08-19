@@ -96,15 +96,185 @@ return /******/ (function(modules) { // webpackBootstrap
 /************************************************************************/
 /******/ ({
 
-/***/ "./src/scene.js":
-/*!**********************!*\
-  !*** ./src/scene.js ***!
-  \**********************/
+/***/ "./src/loadingPanel.js":
+/*!*****************************!*\
+  !*** ./src/loadingPanel.js ***!
+  \*****************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return generateLoadingPanel; });
+/**
+ * Dynamic generation of a simple loading window with a progress bar.
+ * @param canvasID Optional canvas ID. If provided the loading window will be rendered inside the canvas DIV.
+ * @returns {{onProgress: onProgress}} An onProgress function to pass to createScene().
+ */
+function generateLoadingPanel (canvasID) {
+    generateCSS(canvasID);
+    generateHTML(canvasID);
+    return {
+        onProgress: onProgress
+    };
+}
+
+/**
+ * Generates the CSS for the loading panel.
+ * @param canvasID Optional canvas ID.
+ */
+function generateCSS(canvasID) {
+    const style = document.createElement('style');
+    //Deprecated: style.type = 'text/css';
+    let inner = '';
+    if (canvasID) {
+        inner += `
+        #progressWindowOuterContainer {
+            box-sizing: border-box;
+            position: absolute;
+            overflow: visible;
+            width: 100%;
+            height: 0px;
+            margin: 0;
+            padding: 0;
+            z-index: 100000;
+        }
+        `;
+    } else {
+        inner += `
+        #progressWindowOuterContainer {
+            box-sizing: border-box;
+            position: fixed;
+            overflow: visible;
+            width: 100%;
+            height: 0px;
+            margin: 0;
+            padding: 0;
+            z-index: 100000;
+        }
+        `;
+    }
+
+    inner += `
+    #progressWindow {
+        box-sizing: border-box;
+        position: relative;
+        overflow: hidden;
+        width: 300px;
+        height: 130px;
+        top: 50px;
+        margin-left: auto;
+        margin-right: auto;
+        background-color: black;
+        color: white;
+        border: 1px solid #cccccc;
+        padding: 10px;
+    }
+    
+    #progressWindowHeader {
+        box-sizing: border-box;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    #progressBar {
+        box-sizing: border-box;
+        width: 100%;
+        height: 16px;
+        background-color: #aaaaaa;
+        border: 1px solid #666666;
+        overflow: hidden;
+        margin-bottom: 10px;
+    }
+    
+    #progressBarPercentage {
+        box-sizing: border-box;
+        width: 0%;
+        height: 14px;
+        background-color: #00ee00;
+        overflow: hidden;
+    }
+    
+    #progressLogPanel {
+        box-sizing: border-box;
+        width: 100%;
+        height: 50px;
+        border: 1px solid #666666;
+        overflow: auto;
+        padding: 5px;
+        font-size: 12px;
+    }
+    `;
+    style.innerHTML = inner;
+    document.getElementsByTagName('head')[0].appendChild(style);
+}
+
+/**
+ * Generates the HTML for the loading panel.
+ * @param canvasID Optional canvas ID.
+ */
+function generateHTML(canvasID) {
+    const div = document.createElement('div');
+    div.id = 'progressWindowOuterContainer';
+    div.innerHTML = `
+        <div id="progressWindow">
+            <div id="progressWindowHeader">Loading scene ...</div>
+            <div id="progressBar">
+                <div id="progressBarPercentage"></div>
+            </div>
+            <div id="progressLogPanel"></div>
+        </div>
+    `;
+    if (canvasID) {
+        document.getElementById(canvasID).appendChild(div);
+    } else {
+        document.getElementsByTagName('body')[0].appendChild(div);
+    }
+
+}
+
+/**
+ * Updates the progress info.
+ * @param progress Progress object from the scene generator.
+ */
+function onProgress(progress) {
+    const progressPercentage = (progress.percentage * 100) + "%";
+
+    // Updates the progress bar.
+    const progressBar = document.getElementById( 'progressBarPercentage' );
+    progressBar.style.width = progressPercentage;
+
+    // Update the log panel.
+    const logPanel = document.getElementById( 'progressLogPanel' );
+    if (progress.errors.length > 0) {
+        logPanel.innerHTML = 'Failed to load some models.<br> See developer console for details.';
+        progressBar.style.backgroundColor = '#aa0000';
+    } else {
+        logPanel.innerHTML = 'Loaded: ' + progressPercentage;
+    }
+
+    // Hide after everything has been loaded.
+    if (progress.done) {
+        //console.log(progress);
+        const timeout = progress.errors.length === 0 ? 2000 : 5000;
+        setTimeout(() => {
+            document.getElementById('progressWindow').style.display = 'none';
+        }, timeout)
+    }
+}
+
+/***/ }),
+
+/***/ "./src/scene.js":
+/*!**********************!*\
+  !*** ./src/scene.js ***!
+  \**********************/
+/*! exports provided: utils, default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "utils", function() { return utils; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return createScene; });
 /* harmony import */ var three__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! three */ "three");
 /* harmony import */ var three__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(three__WEBPACK_IMPORTED_MODULE_0__);
@@ -112,15 +282,25 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var three_examples_jsm_controls_OrbitControls_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(three_examples_jsm_controls_OrbitControls_js__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var three_examples_jsm_loaders_GLTFLoader_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! three/examples/jsm/loaders/GLTFLoader.js */ "three/examples/jsm/loaders/GLTFLoader.js");
 /* harmony import */ var three_examples_jsm_loaders_GLTFLoader_js__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(three_examples_jsm_loaders_GLTFLoader_js__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _loadingPanel__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./loadingPanel */ "./src/loadingPanel.js");
 
 
 
+
+
+const utils = {
+    generateLoadingPanel: _loadingPanel__WEBPACK_IMPORTED_MODULE_3__["default"]
+};
 
 /**
  * Creates the scene.
  */
-function createScene(config) {
+function createScene(config, onProgress) {
     const scene = new three__WEBPACK_IMPORTED_MODULE_0__["Scene"]();
+    // Mixers are used to animate GLTF meshes.
+    const mixers = [];
+    const clock = new three__WEBPACK_IMPORTED_MODULE_0__["Clock"]();
+
     scene.background = new three__WEBPACK_IMPORTED_MODULE_0__["Color"]((config && config.backgroundColor) ? config.backgroundColor : 0xffffff );
 
     // Renderer
@@ -161,11 +341,18 @@ function createScene(config) {
     const controls = new three_examples_jsm_controls_OrbitControls_js__WEBPACK_IMPORTED_MODULE_1__["OrbitControls"](camera, canvas);
     controls.target.set(0, 0, 0);
 
+    // Point lights
+    if (config && config.pointLights && config.pointLights.length > 0) {
+        config.pointLights.forEach(light => {
+            addPointLight(light, scene);
+        });
+    }
+
     // Directional lights
     if (config && config.directionalLights && config.directionalLights.length > 0) {
         config.directionalLights.forEach(light => {
             addDirectionalLight(light, scene);
-        })
+        });
     } else {
         addDirectionalLight(null, scene);
     }
@@ -175,8 +362,21 @@ function createScene(config) {
 
     // Load the models.
     if (config && config.models && config.models.length > 0) {
+        let index = 0;
+        const totalProgress = {
+            percentage: 0,
+            errors: [],
+            done: false
+        }
         config.models.forEach(model => {
-            loadModel(model, scene);
+            loadModel(model, scene, mixers, index, progress => {
+                // Invoke onProgress if provided.
+                if (onProgress) {
+                    updateTotalProgress(model.file, config.models.length, progress, totalProgress);
+                    onProgress(totalProgress);
+                }
+            });
+            index++;
         })
     } else {
         scene.add(createBox());
@@ -204,10 +404,31 @@ function createScene(config) {
     const animate = function () {
         requestAnimationFrame(animate);
 
+        // Update the animation if GLTF meshes.
+        const delta = clock.getDelta();
+        mixers.forEach(mixer => {
+            mixer.update( delta );
+        });
+
         controls.update();
         renderer.render(scene, camera);
     };
     animate();
+}
+
+/**
+ * Adds a point light.
+ * @param light The light configuration.
+ * @param scene The scene.
+ */
+function addPointLight(light, scene) {
+    const color = light.color ? light.color : 0xFFFFFF;
+    const intensity = light.intensity ? light.intensity : 1;
+    const distance = light.distance ? light.distance : 2;
+
+    const lightInstance = new three__WEBPACK_IMPORTED_MODULE_0__["PointLight"](color, intensity, distance);
+    lightInstance.position.set(...light.position);
+    scene.add( lightInstance );
 }
 
 /**
@@ -259,9 +480,18 @@ function createBox() {
  * Loads a model.
  * @param model The model to load.
  * @param scene The scene.
+ * @param mixers The array of mixers.
+ * @param index The model index.
+ * @param cb Callback function to keep track of progress.
  */
-function loadModel(model, scene) {
+function loadModel(model, scene, mixers, index, cb) {
     const loader = new three_examples_jsm_loaders_GLTFLoader_js__WEBPACK_IMPORTED_MODULE_2__["GLTFLoader"]();
+    const progress = {
+        model: model.file,
+        index: index,
+        percentage: 0,
+        error: null
+    };
     loader.load( model.file , function ( gltf ) {
         // Position the model.
         if (model.position) {
@@ -287,9 +517,61 @@ function loadModel(model, scene) {
 
         // Add to the scene.
         scene.add( gltf.scene );
-    }, undefined, function ( error ) {
-        console.error( error );
-    } );
+
+        // Animation
+        if (model.animate) {
+            const mixer = new three__WEBPACK_IMPORTED_MODULE_0__["AnimationMixer"]( gltf.scene );
+            mixers.push(mixer);
+            //const action = mixer.clipAction( gltf.animations[ 0 ] );
+            //action.play();
+            gltf.animations.forEach((clip) => {mixer.clipAction(clip).play(); });
+        }
+    }, function (xhr) {
+        progress.percentage = xhr.loaded / xhr.total;
+        if (cb) {
+            cb(progress);
+        }
+    },
+        function ( error ) {
+        // We set progress to 100% even though loading failed. So we know that this attempt was completed.
+        progress.percentage = 1;
+        progress.error = 'Failed to load model: ' + model.file;
+        console.error(progress.error);
+        if (cb) {
+            cb(progress);
+        }
+    });
+}
+
+/**
+ * Updates to total progress of loading all the models.
+ * @param modelFile The model file name of the models that is currently being loaded.
+ * @param numberOfModels The total number of model to be loaded.
+ * @param progress The progress of loading the current model (0 to 1)
+ * @param totalProgress The total progress object to update.
+ */
+function updateTotalProgress(modelFile, numberOfModels, progress, totalProgress) {
+    // Keeping track of the progress
+    if (!totalProgress.hasOwnProperty('_percentages')) {
+        totalProgress['_percentages'] = {};
+    }
+    totalProgress['_percentages'][progress.index] = progress.percentage;
+    let total = 0;
+    for (let index1 in totalProgress['_percentages']) {
+        if (totalProgress['_percentages'].hasOwnProperty(index1)) {
+            total += totalProgress['_percentages'][index1];
+        }
+    }
+    totalProgress.percentage = total / numberOfModels;
+
+    if (progress.error) {
+        totalProgress.errors.push(progress.error);
+    }
+
+    // If everything is loaded then we are done.
+    if (totalProgress.percentage === 1) {
+        totalProgress.done = true;
+    }
 }
 
 /**
@@ -332,11 +614,13 @@ function createSkybox(skybox, scene) {
 function addFloor(floor, scene) {
     const size = floor.size ? floor.size : 1000
     const color = floor.color ? floor.color : 0x00FF00;
+    const level = floor.level ? floor.level : 0;
 
     const geometry = new three__WEBPACK_IMPORTED_MODULE_0__["PlaneGeometry"]( size, size, 1, 1 );
     const material = new three__WEBPACK_IMPORTED_MODULE_0__["MeshBasicMaterial"]( {color: color, side: three__WEBPACK_IMPORTED_MODULE_0__["DoubleSide"]} );
     const plane = new three__WEBPACK_IMPORTED_MODULE_0__["Mesh"]( geometry, material );
     plane.rotateX(0.5*Math.PI);
+    plane.position.set(0, level, 0);
     scene.add( plane );
 }
 

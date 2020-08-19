@@ -1,5 +1,5 @@
 import createScene from "./../src/scene";
-import generateLoadingPanel from "./loadingPanel";
+import {utils} from "../src/scene";
 
 /*
  * Note: the model and skybox paths are relative to this file.
@@ -86,7 +86,7 @@ const config = {
     axis: true
 }
 
-createScene(config, generateLoadingPanel().onProgress);
+createScene(config, utils.generateLoadingPanel().onProgress);
 
 // Hide the canvas if it is not used to render the scene.
 if (!config.canvasID) {
