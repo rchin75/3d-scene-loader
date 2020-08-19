@@ -29,6 +29,7 @@ function generateCSS(canvasID) {
             height: 0px;
             margin: 0;
             padding: 0;
+            z-index: 100000;
         }
         `;
     } else {
@@ -41,6 +42,7 @@ function generateCSS(canvasID) {
             height: 0px;
             margin: 0;
             padding: 0;
+            z-index: 100000;
         }
         `;
     }
