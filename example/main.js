@@ -92,9 +92,11 @@ createScene(config, onProgress);
  * @param progress Progress object.
  */
 function onProgress(progress) {
+    const progressPercentage = (progress.percentage * 100) + "%";
+
     // Updates the progress bar.
     const progressBar = document.getElementById( 'progressBarPercentage' );
-    progressBar.style.width = (progress.percentage * 100) + "%";
+    progressBar.style.width = progressPercentage;
 
     // Update the log panel.
     const logPanel = document.getElementById( 'progressLogPanel' );
@@ -102,10 +104,10 @@ function onProgress(progress) {
         logPanel.innerHTML = 'Failed to load some models.<br> See developer console for details.';
         progressBar.style.backgroundColor = '#aa0000';
     } else {
-        logPanel.innerHTML = 'Loaded: ' + (progress.percentage * 100) + "%";
+        logPanel.innerHTML = 'Loaded: ' + progressPercentage;
     }
 
-    // Hide after everything has been loaded successfully.
+    // Hide after everything has been loaded.
     if (progress.done) {
         //console.log(progress);
         const timeout = progress.errors.length === 0 ? 2000 : 5000;
