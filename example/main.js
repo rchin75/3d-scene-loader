@@ -85,14 +85,38 @@ const config = {
     axis: true
 }
 
-function onProgress(progress) {
-    console.log('onProgress', JSON.stringify(progress));
-}
-
 createScene(config, onProgress);
+
+/**
+ * Displays the loading progress.
+ * @param progress Progress object.
+ */
+function onProgress(progress) {
+    // Updates the progress bar.
+    const progressBar = document.getElementById( 'progressBarPercentage' );
+    progressBar.style.width = (progress.percentage * 100) + "%";
+
+    // Update the log panel.
+    const logPanel = document.getElementById( 'progressLogPanel' );
+    if (progress.errors.length > 0) {
+        logPanel.innerHTML = 'Failed to load some models.<br> See developer console for details.';
+        progressBar.style.backgroundColor = '#aa0000';
+    } else {
+        logPanel.innerHTML = 'Loaded: ' + (progress.percentage * 100) + "%";
+    }
+
+    // Hide after everything has been loaded successfully.
+    if (progress.done) {
+        //console.log(progress);
+        const timeout = progress.errors.length === 0 ? 2000 : 5000;
+        setTimeout(() => {
+            document.getElementById('progressWindow').style.display = 'none';
+        }, timeout)
+    }
+}
 
 // Hide the canvas if it is not used to render the scene.
 if (!config.canvasID) {
     let canvas = document.getElementById( 'canvas' );
-    canvas.style.display = "none";
+    canvas.style.display = 'none';
 }

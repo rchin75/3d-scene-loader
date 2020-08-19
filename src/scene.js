@@ -243,10 +243,10 @@ function loadModel(model, scene, mixers, index, cb) {
         }
     },
         function ( error ) {
-        console.error( error );
         // We set progress to 100% even though loading failed. So we know that this attempt was completed.
         progress.percentage = 1;
-        progress.error = 'Failed to load model';
+        progress.error = 'Failed to load model: ' + model.file;
+        console.error(progress.error);
         if (cb) {
             cb(progress);
         }
@@ -275,7 +275,7 @@ function updateTotalProgress(modelFile, numberOfModels, progress, totalProgress)
     totalProgress.percentage = total / numberOfModels;
 
     if (progress.error) {
-        totalProgress.errors.push({model: modelFile, error: progress.error});
+        totalProgress.errors.push(progress.error);
     }
 
     // If everything is loaded then we are done.
