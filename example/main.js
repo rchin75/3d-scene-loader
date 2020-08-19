@@ -1,4 +1,5 @@
 import createScene from "./../src/scene";
+import generateLoadingPanel from "./loadingPanel";
 
 /*
  * Note: the model and skybox paths are relative to this file.
@@ -85,40 +86,11 @@ const config = {
     axis: true
 }
 
-createScene(config, onProgress);
-
-/**
- * Displays the loading progress.
- * @param progress Progress object.
- */
-function onProgress(progress) {
-    const progressPercentage = (progress.percentage * 100) + "%";
-
-    // Updates the progress bar.
-    const progressBar = document.getElementById( 'progressBarPercentage' );
-    progressBar.style.width = progressPercentage;
-
-    // Update the log panel.
-    const logPanel = document.getElementById( 'progressLogPanel' );
-    if (progress.errors.length > 0) {
-        logPanel.innerHTML = 'Failed to load some models.<br> See developer console for details.';
-        progressBar.style.backgroundColor = '#aa0000';
-    } else {
-        logPanel.innerHTML = 'Loaded: ' + progressPercentage;
-    }
-
-    // Hide after everything has been loaded.
-    if (progress.done) {
-        //console.log(progress);
-        const timeout = progress.errors.length === 0 ? 2000 : 5000;
-        setTimeout(() => {
-            document.getElementById('progressWindow').style.display = 'none';
-        }, timeout)
-    }
-}
+createScene(config, generateLoadingPanel().onProgress);
 
 // Hide the canvas if it is not used to render the scene.
 if (!config.canvasID) {
     let canvas = document.getElementById( 'canvas' );
     canvas.style.display = 'none';
 }
+
