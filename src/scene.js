@@ -9,12 +9,26 @@ export const utils = {
 
 /**
  * Creates the scene.
+ * @param {Object} config Scene configuration.
+ * @param {Object} [params] Parameters.
+ * @param {string} [params.canvasID] Optional canvas to render to.
+ * @param {Function} [params.onProgress] Optional callback function to keep track of loading progress.
  */
-export default function createScene(config, onProgress) {
+export default function createScene(config, params) {
     const scene = new THREE.Scene();
     // Mixers are used to animate GLTF meshes.
     const mixers = [];
     const clock = new THREE.Clock();
+
+    const {canvasID, onProgress} = params;
+
+    // Determine if and how to show loading progress.
+    let progressHandler = null;
+    if (onProgress === undefined) {
+        progressHandler = generateLoadingPanel(canvasID).onProgress
+    } else if (onProgress !== null) {
+        progressHandler = onProgress;
+    }
 
     scene.background = new THREE.Color((config && config.backgroundColor) ? config.backgroundColor : 0xffffff );
 
@@ -22,9 +36,9 @@ export default function createScene(config, onProgress) {
     const renderer = new THREE.WebGLRenderer({antialias: true});
 
     let canvas, width, height;
-    if (config && config.canvasID) {
+    if (canvasID) {
         // Render to canvas (a DIV element with a certain size).
-        canvas = document.getElementById( config.canvasID );
+        canvas = document.getElementById( canvasID );
         canvas.appendChild( renderer.domElement );
         width = canvas.clientWidth;
         height = canvas.clientHeight;
@@ -50,7 +64,7 @@ export default function createScene(config, onProgress) {
     }
 
     // Handle window resizes.
-    handleWindowResize(config, camera, renderer);
+    handleWindowResize(camera, renderer, canvasID);
 
     // Enable controlling the camera with the mouse.
     const controls = new OrbitControls(camera, canvas);
@@ -85,10 +99,10 @@ export default function createScene(config, onProgress) {
         }
         config.models.forEach(model => {
             loadModel(model, scene, mixers, index, progress => {
-                // Invoke onProgress if provided.
-                if (onProgress) {
+                // Invoke progressHandler if provided.
+                if (progressHandler) {
                     updateTotalProgress(model.file, config.models.length, progress, totalProgress);
-                    onProgress(totalProgress);
+                    progressHandler(totalProgress);
                 }
             });
             index++;
@@ -341,16 +355,16 @@ function addFloor(floor, scene) {
 
 /**
  * Handles resizing of the browser window.
- * @param config Configuration.
  * @param camera Camera.
  * @param renderer Renderer.
+ * @param canvasID Canvas ID.
  */
-function handleWindowResize(config, camera, renderer) {
+function handleWindowResize(camera, renderer, canvasID) {
     let width, height;
     window.addEventListener( 'resize', onWindowResize, false );
     function onWindowResize(){
-        if (config && config.canvasID) {
-            const canvas = document.getElementById( config.canvasID );
+        if (canvasID) {
+            const canvas = document.getElementById( canvasID );
             width = canvas.clientWidth;
             height = canvas.clientHeight;
         } else {

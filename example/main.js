@@ -1,5 +1,4 @@
 import createScene from "./../src/scene";
-import {utils} from "../src/scene";
 
 /*
  * Note: the model and skybox paths are relative to this file.
@@ -9,9 +8,8 @@ import {utils} from "../src/scene";
  *
  * Run with npm run serve.
  */
-
+const canvasID = null;// 'canvas';
 const config = {
-    //canvasID : 'canvas',
     backgroundColor: 0xAACCFF,
     models: [
         {
@@ -86,10 +84,10 @@ const config = {
     axis: true
 }
 
-createScene(config, utils.generateLoadingPanel().onProgress);
+createScene(config, {canvasID});
 
 // Hide the canvas if it is not used to render the scene.
-if (!config.canvasID) {
+if (!canvasID) {
     let canvas = document.getElementById( 'canvas' );
     canvas.style.display = 'none';
 }
