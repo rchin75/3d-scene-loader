@@ -105,15 +105,47 @@ return /******/ (function(modules) { // webpackBootstrap
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return generateLoadingPanel; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return LoadingPanel; });
 /**
  * Dynamic generation of a simple loading window with a progress bar.
  * @param canvasID Optional canvas ID. If provided the loading window will be rendered inside the canvas DIV.
  * @returns {{onProgress: onProgress}} An onProgress function to pass to createScene().
  */
-function generateLoadingPanel (canvasID) {
-    generateCSS(canvasID);
-    generateHTML(canvasID);
+function LoadingPanel (canvasID) {
+    const prefix = canvasID ? canvasID + '_' : '';
+    generateCSS(canvasID, prefix);
+    generateHTML(canvasID, prefix);
+
+    /**
+     * Updates the progress info.
+     * @param progress Progress object from the scene generator.
+     */
+    function onProgress(progress) {
+        const progressPercentage = (progress.percentage * 100) + "%";
+
+        // Updates the progress bar.
+        const progressBar = document.getElementById( prefix + 'progressBarPercentage' );
+        progressBar.style.width = progressPercentage;
+
+        // Update the log panel.
+        const logPanel = document.getElementById( prefix + 'progressLogPanel' );
+        if (progress.errors.length > 0) {
+            logPanel.innerHTML = 'Failed to load some models.<br> See developer console for details.';
+            progressBar.style.backgroundColor = '#aa0000';
+        } else {
+            logPanel.innerHTML = 'Loaded: ' + progressPercentage;
+        }
+
+        // Hide after everything has been loaded.
+        if (progress.done) {
+            //console.log(progress);
+            const timeout = progress.errors.length === 0 ? 2000 : 5000;
+            setTimeout(() => {
+                document.getElementById(prefix + 'progressWindow').style.display = 'none';
+            }, timeout)
+        }
+    }
+
     return {
         onProgress: onProgress
     };
@@ -122,14 +154,15 @@ function generateLoadingPanel (canvasID) {
 /**
  * Generates the CSS for the loading panel.
  * @param canvasID Optional canvas ID.
+ * @param prefix ID prefix.
  */
-function generateCSS(canvasID) {
+function generateCSS(canvasID, prefix) {
     const style = document.createElement('style');
     //Deprecated: style.type = 'text/css';
     let inner = '';
     if (canvasID) {
         inner += `
-        #progressWindowOuterContainer {
+        #${prefix}progressWindowOuterContainer {
             box-sizing: border-box;
             position: absolute;
             overflow: visible;
@@ -142,7 +175,7 @@ function generateCSS(canvasID) {
         `;
     } else {
         inner += `
-        #progressWindowOuterContainer {
+        #${prefix}progressWindowOuterContainer {
             box-sizing: border-box;
             position: fixed;
             overflow: visible;
@@ -156,7 +189,7 @@ function generateCSS(canvasID) {
     }
 
     inner += `
-    #progressWindow {
+    #${prefix}progressWindow {
         box-sizing: border-box;
         position: relative;
         overflow: hidden;
@@ -171,13 +204,13 @@ function generateCSS(canvasID) {
         padding: 10px;
     }
     
-    #progressWindowHeader {
+    #${prefix}progressWindowHeader {
         box-sizing: border-box;
         width: 100%;
         margin-bottom: 10px;
     }
     
-    #progressBar {
+    #${prefix}progressBar {
         box-sizing: border-box;
         width: 100%;
         height: 16px;
@@ -187,7 +220,7 @@ function generateCSS(canvasID) {
         margin-bottom: 10px;
     }
     
-    #progressBarPercentage {
+    #${prefix}progressBarPercentage {
         box-sizing: border-box;
         width: 0%;
         height: 14px;
@@ -195,7 +228,7 @@ function generateCSS(canvasID) {
         overflow: hidden;
     }
     
-    #progressLogPanel {
+    #${prefix}progressLogPanel {
         box-sizing: border-box;
         width: 100%;
         height: 50px;
@@ -212,17 +245,18 @@ function generateCSS(canvasID) {
 /**
  * Generates the HTML for the loading panel.
  * @param canvasID Optional canvas ID.
+ * @param prefix ID prefix.
  */
-function generateHTML(canvasID) {
+function generateHTML(canvasID, prefix) {
     const div = document.createElement('div');
-    div.id = 'progressWindowOuterContainer';
+    div.id = prefix + 'progressWindowOuterContainer';
     div.innerHTML = `
-        <div id="progressWindow">
-            <div id="progressWindowHeader">Loading scene ...</div>
-            <div id="progressBar">
-                <div id="progressBarPercentage"></div>
+        <div id="${prefix}progressWindow">
+            <div id="${prefix}progressWindowHeader">Loading scene ...</div>
+            <div id="${prefix}progressBar">
+                <div id="${prefix}progressBarPercentage"></div>
             </div>
-            <div id="progressLogPanel"></div>
+            <div id="${prefix}progressLogPanel"></div>
         </div>
     `;
     if (canvasID) {
@@ -233,35 +267,6 @@ function generateHTML(canvasID) {
 
 }
 
-/**
- * Updates the progress info.
- * @param progress Progress object from the scene generator.
- */
-function onProgress(progress) {
-    const progressPercentage = (progress.percentage * 100) + "%";
-
-    // Updates the progress bar.
-    const progressBar = document.getElementById( 'progressBarPercentage' );
-    progressBar.style.width = progressPercentage;
-
-    // Update the log panel.
-    const logPanel = document.getElementById( 'progressLogPanel' );
-    if (progress.errors.length > 0) {
-        logPanel.innerHTML = 'Failed to load some models.<br> See developer console for details.';
-        progressBar.style.backgroundColor = '#aa0000';
-    } else {
-        logPanel.innerHTML = 'Loaded: ' + progressPercentage;
-    }
-
-    // Hide after everything has been loaded.
-    if (progress.done) {
-        //console.log(progress);
-        const timeout = progress.errors.length === 0 ? 2000 : 5000;
-        setTimeout(() => {
-            document.getElementById('progressWindow').style.display = 'none';
-        }, timeout)
-    }
-}
 
 /***/ }),
 
@@ -289,17 +294,31 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const utils = {
-    generateLoadingPanel: _loadingPanel__WEBPACK_IMPORTED_MODULE_3__["default"]
+    LoadingPanel: _loadingPanel__WEBPACK_IMPORTED_MODULE_3__["default"]
 };
 
 /**
  * Creates the scene.
+ * @param {Object} config Scene configuration.
+ * @param {Object} [params] Parameters.
+ * @param {string} [params.canvasID] Optional canvas to render to.
+ * @param {Function} [params.onProgress] Optional callback function to keep track of loading progress.
  */
-function createScene(config, onProgress) {
+function createScene(config, params) {
     const scene = new three__WEBPACK_IMPORTED_MODULE_0__["Scene"]();
     // Mixers are used to animate GLTF meshes.
     const mixers = [];
     const clock = new three__WEBPACK_IMPORTED_MODULE_0__["Clock"]();
+
+    const {canvasID, onProgress} = params;
+
+    // Determine if and how to show loading progress.
+    let progressHandler = null;
+    if (onProgress === undefined) {
+        progressHandler = new _loadingPanel__WEBPACK_IMPORTED_MODULE_3__["default"](canvasID).onProgress
+    } else if (onProgress !== null) {
+        progressHandler = onProgress;
+    }
 
     scene.background = new three__WEBPACK_IMPORTED_MODULE_0__["Color"]((config && config.backgroundColor) ? config.backgroundColor : 0xffffff );
 
@@ -307,9 +326,9 @@ function createScene(config, onProgress) {
     const renderer = new three__WEBPACK_IMPORTED_MODULE_0__["WebGLRenderer"]({antialias: true});
 
     let canvas, width, height;
-    if (config && config.canvasID) {
+    if (canvasID) {
         // Render to canvas (a DIV element with a certain size).
-        canvas = document.getElementById( config.canvasID );
+        canvas = document.getElementById( canvasID );
         canvas.appendChild( renderer.domElement );
         width = canvas.clientWidth;
         height = canvas.clientHeight;
@@ -335,7 +354,7 @@ function createScene(config, onProgress) {
     }
 
     // Handle window resizes.
-    handleWindowResize(config, camera, renderer);
+    handleWindowResize(camera, renderer, canvasID);
 
     // Enable controlling the camera with the mouse.
     const controls = new three_examples_jsm_controls_OrbitControls_js__WEBPACK_IMPORTED_MODULE_1__["OrbitControls"](camera, canvas);
@@ -370,10 +389,10 @@ function createScene(config, onProgress) {
         }
         config.models.forEach(model => {
             loadModel(model, scene, mixers, index, progress => {
-                // Invoke onProgress if provided.
-                if (onProgress) {
+                // Invoke progressHandler if provided.
+                if (progressHandler) {
                     updateTotalProgress(model.file, config.models.length, progress, totalProgress);
-                    onProgress(totalProgress);
+                    progressHandler(totalProgress);
                 }
             });
             index++;
@@ -626,16 +645,16 @@ function addFloor(floor, scene) {
 
 /**
  * Handles resizing of the browser window.
- * @param config Configuration.
  * @param camera Camera.
  * @param renderer Renderer.
+ * @param canvasID Canvas ID.
  */
-function handleWindowResize(config, camera, renderer) {
+function handleWindowResize(camera, renderer, canvasID) {
     let width, height;
     window.addEventListener( 'resize', onWindowResize, false );
     function onWindowResize(){
-        if (config && config.canvasID) {
-            const canvas = document.getElementById( config.canvasID );
+        if (canvasID) {
+            const canvas = document.getElementById( canvasID );
             width = canvas.clientWidth;
             height = canvas.clientHeight;
         } else {

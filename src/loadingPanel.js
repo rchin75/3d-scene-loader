@@ -3,9 +3,41 @@
  * @param canvasID Optional canvas ID. If provided the loading window will be rendered inside the canvas DIV.
  * @returns {{onProgress: onProgress}} An onProgress function to pass to createScene().
  */
-export default function generateLoadingPanel (canvasID) {
-    generateCSS(canvasID);
-    generateHTML(canvasID);
+export default function LoadingPanel (canvasID) {
+    const prefix = canvasID ? canvasID + '_' : '';
+    generateCSS(canvasID, prefix);
+    generateHTML(canvasID, prefix);
+
+    /**
+     * Updates the progress info.
+     * @param progress Progress object from the scene generator.
+     */
+    function onProgress(progress) {
+        const progressPercentage = (progress.percentage * 100) + "%";
+
+        // Updates the progress bar.
+        const progressBar = document.getElementById( prefix + 'progressBarPercentage' );
+        progressBar.style.width = progressPercentage;
+
+        // Update the log panel.
+        const logPanel = document.getElementById( prefix + 'progressLogPanel' );
+        if (progress.errors.length > 0) {
+            logPanel.innerHTML = 'Failed to load some models.<br> See developer console for details.';
+            progressBar.style.backgroundColor = '#aa0000';
+        } else {
+            logPanel.innerHTML = 'Loaded: ' + progressPercentage;
+        }
+
+        // Hide after everything has been loaded.
+        if (progress.done) {
+            //console.log(progress);
+            const timeout = progress.errors.length === 0 ? 2000 : 5000;
+            setTimeout(() => {
+                document.getElementById(prefix + 'progressWindow').style.display = 'none';
+            }, timeout)
+        }
+    }
+
     return {
         onProgress: onProgress
     };
@@ -14,14 +46,15 @@ export default function generateLoadingPanel (canvasID) {
 /**
  * Generates the CSS for the loading panel.
  * @param canvasID Optional canvas ID.
+ * @param prefix ID prefix.
  */
-function generateCSS(canvasID) {
+function generateCSS(canvasID, prefix) {
     const style = document.createElement('style');
     //Deprecated: style.type = 'text/css';
     let inner = '';
     if (canvasID) {
         inner += `
-        #progressWindowOuterContainer {
+        #${prefix}progressWindowOuterContainer {
             box-sizing: border-box;
             position: absolute;
             overflow: visible;
@@ -34,7 +67,7 @@ function generateCSS(canvasID) {
         `;
     } else {
         inner += `
-        #progressWindowOuterContainer {
+        #${prefix}progressWindowOuterContainer {
             box-sizing: border-box;
             position: fixed;
             overflow: visible;
@@ -48,7 +81,7 @@ function generateCSS(canvasID) {
     }
 
     inner += `
-    #progressWindow {
+    #${prefix}progressWindow {
         box-sizing: border-box;
         position: relative;
         overflow: hidden;
@@ -63,13 +96,13 @@ function generateCSS(canvasID) {
         padding: 10px;
     }
     
-    #progressWindowHeader {
+    #${prefix}progressWindowHeader {
         box-sizing: border-box;
         width: 100%;
         margin-bottom: 10px;
     }
     
-    #progressBar {
+    #${prefix}progressBar {
         box-sizing: border-box;
         width: 100%;
         height: 16px;
@@ -79,7 +112,7 @@ function generateCSS(canvasID) {
         margin-bottom: 10px;
     }
     
-    #progressBarPercentage {
+    #${prefix}progressBarPercentage {
         box-sizing: border-box;
         width: 0%;
         height: 14px;
@@ -87,7 +120,7 @@ function generateCSS(canvasID) {
         overflow: hidden;
     }
     
-    #progressLogPanel {
+    #${prefix}progressLogPanel {
         box-sizing: border-box;
         width: 100%;
         height: 50px;
@@ -104,17 +137,18 @@ function generateCSS(canvasID) {
 /**
  * Generates the HTML for the loading panel.
  * @param canvasID Optional canvas ID.
+ * @param prefix ID prefix.
  */
-function generateHTML(canvasID) {
+function generateHTML(canvasID, prefix) {
     const div = document.createElement('div');
-    div.id = 'progressWindowOuterContainer';
+    div.id = prefix + 'progressWindowOuterContainer';
     div.innerHTML = `
-        <div id="progressWindow">
-            <div id="progressWindowHeader">Loading scene ...</div>
-            <div id="progressBar">
-                <div id="progressBarPercentage"></div>
+        <div id="${prefix}progressWindow">
+            <div id="${prefix}progressWindowHeader">Loading scene ...</div>
+            <div id="${prefix}progressBar">
+                <div id="${prefix}progressBarPercentage"></div>
             </div>
-            <div id="progressLogPanel"></div>
+            <div id="${prefix}progressLogPanel"></div>
         </div>
     `;
     if (canvasID) {
@@ -123,34 +157,4 @@ function generateHTML(canvasID) {
         document.getElementsByTagName('body')[0].appendChild(div);
     }
 
-}
-
-/**
- * Updates the progress info.
- * @param progress Progress object from the scene generator.
- */
-function onProgress(progress) {
-    const progressPercentage = (progress.percentage * 100) + "%";
-
-    // Updates the progress bar.
-    const progressBar = document.getElementById( 'progressBarPercentage' );
-    progressBar.style.width = progressPercentage;
-
-    // Update the log panel.
-    const logPanel = document.getElementById( 'progressLogPanel' );
-    if (progress.errors.length > 0) {
-        logPanel.innerHTML = 'Failed to load some models.<br> See developer console for details.';
-        progressBar.style.backgroundColor = '#aa0000';
-    } else {
-        logPanel.innerHTML = 'Loaded: ' + progressPercentage;
-    }
-
-    // Hide after everything has been loaded.
-    if (progress.done) {
-        //console.log(progress);
-        const timeout = progress.errors.length === 0 ? 2000 : 5000;
-        setTimeout(() => {
-            document.getElementById('progressWindow').style.display = 'none';
-        }, timeout)
-    }
 }

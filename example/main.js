@@ -8,7 +8,7 @@ import createScene from "./../src/scene";
  *
  * Run with npm run serve.
  */
-const canvasID = null;// 'canvas';
+const canvasID = 'canvas';
 const config = {
     backgroundColor: 0xAACCFF,
     models: [

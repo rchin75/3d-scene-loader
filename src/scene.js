@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import generateLoadingPanel from "./loadingPanel";
+import LoadingPanel from "./loadingPanel";
 
 export const utils = {
-    generateLoadingPanel
+    LoadingPanel
 };
 
 /**
@@ -25,7 +25,7 @@ export default function createScene(config, params) {
     // Determine if and how to show loading progress.
     let progressHandler = null;
     if (onProgress === undefined) {
-        progressHandler = generateLoadingPanel(canvasID).onProgress
+        progressHandler = new LoadingPanel(canvasID).onProgress
     } else if (onProgress !== null) {
         progressHandler = onProgress;
     }
