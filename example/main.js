@@ -8,45 +8,53 @@ import createScene from "./../src/scene";
  *
  * Run with npm run serve.
  */
-const canvasID = 'canvas';
+const canvasID = null;//'canvas';
 const config = {
     backgroundColor: 0xAACCFF,
     models: [
         {
+            name: 'terrain',
             file: './../models/ground/ground.gltf',
             position: [0,0,0],
             scale: 0.5,
             rotateY: 0,
             rotateX: 0,
             rotateZ: 0,
-            animate: false
+            animate: false,
+            clickable: false
         },
         {
+            name: 'windmill01',
             file: './../models/windmill/windmill01.gltf',
             position: [0,0,0],
             scale: 0.5,
             rotateY: 0,
             rotateX: 0,
             rotateZ: 0,
-            animate: true
+            animate: true,
+            clickable: true
         },
         {
+            name: 'windmill02',
             file: './../models/windmill/windmill01.gltf',
             position: [5,0,0],
             scale: 0.5,
             rotateY: 0,
             rotateX: 0,
             rotateZ: 0,
-            animate: true
+            animate: true,
+            clickable: true
         },
         {
+            name: "windmill03",
             file: './../models/windmill/windmill01.gltf',
             position: [-5,0,1],
             scale: 0.5,
             rotateY: 0,
             rotateX: 0,
             rotateZ: 0,
-            animate: true
+            animate: true,
+            clickable: true
         },
     ],
     ambientLight: {
@@ -84,7 +92,11 @@ const config = {
     axis: true
 }
 
-createScene(config, {canvasID});
+function onClick(event) {
+    console.log("You clicked on: " + event.name);
+}
+
+createScene(config, {canvasID, onClick});
 
 // Hide the canvas if it is not used to render the scene.
 if (!canvasID) {

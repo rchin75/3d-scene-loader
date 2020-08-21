@@ -13,6 +13,7 @@ export const utils = {
  * @param {Object} [params] Parameters.
  * @param {string} [params.canvasID] Optional canvas to render to.
  * @param {Function} [params.onProgress] Optional callback function to keep track of loading progress.
+ * @param {Function} [params.onClick] Optional callback function to handle click events.
  */
 export default function createScene(config, params) {
     const scene = new THREE.Scene();
@@ -20,7 +21,7 @@ export default function createScene(config, params) {
     const mixers = [];
     const clock = new THREE.Clock();
 
-    const {canvasID, onProgress} = params;
+    const {canvasID, onProgress, onClick} = params;
 
     // Determine if and how to show loading progress.
     let progressHandler = null;
@@ -100,7 +101,7 @@ export default function createScene(config, params) {
         config.models.forEach(model => {
             loadModel(model, scene, mixers, index, progress => {
                 // Invoke progressHandler if provided.
-                if (progressHandler) {
+                if (progressHandler && (progressHandler instanceof Function)) {
                     updateTotalProgress(model.file, config.models.length, progress, totalProgress);
                     progressHandler(totalProgress);
                 }
@@ -129,6 +130,11 @@ export default function createScene(config, params) {
         scene.add(axesHelper);
     }
 
+    // Click events
+    if (onClick && (onClick instanceof Function)) {
+        handleMouseClickEvents(renderer, width, height, camera, scene, onClick);
+    }
+
     // Animate and render the scene.
     const animate = function () {
         requestAnimationFrame(animate);
@@ -147,7 +153,7 @@ export default function createScene(config, params) {
 
 /**
  * Adds a point light.
- * @param light The light configuration.
+ * @param {Object} light The light configuration.
  * @param scene The scene.
  */
 function addPointLight(light, scene) {
@@ -162,7 +168,7 @@ function addPointLight(light, scene) {
 
 /**
  * Adds a directional light to the scene.
- * @param light The light configuration.
+ * @param {Object} light The light configuration.
  * @param scene The scene.
  */
 function addDirectionalLight(light, scene) {
@@ -185,7 +191,7 @@ function addDirectionalLight(light, scene) {
 
 /**
  * Adds ambient light to the scene.
- * @param ambientLight Ambient light configuration.
+ * @param {Object} ambientLight Ambient light configuration.
  * @param scene The scene.
  */
 function addAmbientLight(ambientLight, scene) {
@@ -207,11 +213,11 @@ function createBox() {
 
 /**
  * Loads a model.
- * @param model The model to load.
+ * @param {Object} model The model to load.
  * @param scene The scene.
- * @param mixers The array of mixers.
- * @param index The model index.
- * @param cb Callback function to keep track of progress.
+ * @param {Array} mixers The array of mixers.
+ * @param {number} index The model index.
+ * @param {Function} cb Callback function to keep track of progress.
  */
 function loadModel(model, scene, mixers, index, cb) {
     const loader = new GLTFLoader();
@@ -242,6 +248,17 @@ function loadModel(model, scene, mixers, index, cb) {
         // Roll
         if (model.rotateZ) {
             gltf.scene.rotateZ(model.rotateZ);
+        }
+
+        if (model.name) {
+            gltf.scene.name = model.name;
+        } else {
+            gltf.scene.name = model.file + "_" + index;
+        }
+        gltf.scene.userData = {
+            type: 'gltf',
+            clickable: model.clickable ? model.clickable : false,
+            file: model.file
         }
 
         // Add to the scene.
@@ -305,7 +322,7 @@ function updateTotalProgress(modelFile, numberOfModels, progress, totalProgress)
 
 /**
  * Creates a skybox.
- * @param skybox Skybox configuration.
+ * @param {Object} skybox Skybox configuration.
  * @param scene The scene.
  */
 function createSkybox(skybox, scene) {
@@ -337,7 +354,7 @@ function createSkybox(skybox, scene) {
 
 /**
  * Adds a floor.
- * @param floor Floor configuration.
+ * @param {Object} floor Floor configuration.
  * @param scene The scene.
  */
 function addFloor(floor, scene) {
@@ -357,7 +374,7 @@ function addFloor(floor, scene) {
  * Handles resizing of the browser window.
  * @param camera Camera.
  * @param renderer Renderer.
- * @param canvasID Canvas ID.
+ * @param {String} canvasID Canvas ID.
  */
 function handleWindowResize(camera, renderer, canvasID) {
     let width, height;
@@ -375,4 +392,51 @@ function handleWindowResize(camera, renderer, canvasID) {
         camera.updateProjectionMatrix();
         renderer.setSize( width, height );
     }
+}
+
+/**
+ * Handles mouse click events as well as touch events.
+ * @param {Object} renderer The renderer.
+ * @param {number} width Width of the canvas.
+ * @param {number} height Height of the canvas.
+ * @param camera The camera.
+ * @param scene The scene.
+ * @param {Function} onClickCallback On click callback function.
+ */
+function handleMouseClickEvents(renderer, width, height, camera, scene, onClickCallback) {
+    const rayCaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    const onClick = function(event) {
+        if (event.touches) {
+            // Touch event.
+            mouse.x = ( event.touches[0].clientX / width ) * 2 - 1;
+            mouse.y = - ( event.touches[0].clientY / height ) * 2 + 1;
+        } else {
+            // Mouse event.
+            mouse.x = ( event.clientX / width ) * 2 - 1;
+            mouse.y = - ( event.clientY / height ) * 2 + 1;
+        }
+        rayCaster.setFromCamera(mouse, camera);
+        const intersects = rayCaster.intersectObjects( scene.children, true );
+        let selectedObject = null;
+        for (let i=0; i<intersects.length; i++) {
+            let obj = intersects[i].object;
+            while (obj.parent !== null) {
+                obj = obj.parent;
+                if (obj.userData && obj.userData.type && (obj.userData.type === 'gltf') && (obj.userData.clickable)) {
+                    selectedObject = obj;
+                    if (onClickCallback) {
+                        onClickCallback({name: selectedObject.name, object: selectedObject});
+                    }
+                    break;
+                }
+            }
+            if (selectedObject) {
+                break;
+            }
+        }
+    }
+    // Register both mouse and touch events.
+    renderer.domElement.addEventListener('click', onClick, true);
+    renderer.domElement.addEventListener('touchstart', onClick, true);
 }
