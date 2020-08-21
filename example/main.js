@@ -1,4 +1,5 @@
 import createScene from "./../src/scene";
+import {utils} from "./../src/scene";
 
 /*
  * Note: the model and skybox paths are relative to this file.
@@ -59,12 +60,12 @@ const config = {
     ],
     ambientLight: {
         color: 0xFFFFFF,
-        intensity: 0.8
+        intensity: 0.3
     },
     directionalLights: [
         {
             color: 0xFFFFFF,
-            intensity: 0.8,
+            intensity: 0.5,
             position: [150,200,130],
             target: [0,0,0],
         }
@@ -80,7 +81,7 @@ const config = {
         leftSide: 'left.jpg'
     },
     floor: {
-        color: 0x00FF00,
+        color: 0x009900,
         size: 10000,
         level: -0.1
     },
@@ -92,11 +93,21 @@ const config = {
     axis: true
 }
 
-function onClick(event) {
-    console.log("You clicked on: " + event.name);
-}
+const scene = createScene(config, {canvasID, onClick});
 
-createScene(config, {canvasID, onClick});
+// Handle selection on click events.
+const boundingBox = new utils.BoundingBox();
+function onClick(event) {
+    if (event.name) {
+        console.log("You clicked on: " + event.name);
+
+        boundingBox.update(event.object);
+
+        scene.add( boundingBox.mesh );
+    } else {
+        scene.remove( boundingBox.mesh );
+    }
+}
 
 // Hide the canvas if it is not used to render the scene.
 if (!canvasID) {

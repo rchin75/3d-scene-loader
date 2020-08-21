@@ -2,9 +2,11 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import LoadingPanel from "./loadingPanel";
+import BoundingBox from "./boundingBox";
 
 export const utils = {
-    LoadingPanel
+    LoadingPanel,
+    BoundingBox
 };
 
 /**
@@ -35,6 +37,9 @@ export default function createScene(config, params) {
 
     // Renderer
     const renderer = new THREE.WebGLRenderer({antialias: true});
+    // Correct lightning. See: https://discourse.threejs.org/t/whats-this-about-gammafactor/4264/5
+    renderer.gammaOutput = true;
+    // Deprecated: renderer.gammaFactor = 2.2;
 
     let canvas, width, height;
     if (canvasID) {
@@ -149,6 +154,8 @@ export default function createScene(config, params) {
         renderer.render(scene, camera);
     };
     animate();
+
+    return scene;
 }
 
 /**
@@ -250,6 +257,7 @@ function loadModel(model, scene, mixers, index, cb) {
             gltf.scene.rotateZ(model.rotateZ);
         }
 
+        // Meta data. Needed for the onClick handler.
         if (model.name) {
             gltf.scene.name = model.name;
         } else {
@@ -260,6 +268,13 @@ function loadModel(model, scene, mixers, index, cb) {
             clickable: model.clickable ? model.clickable : false,
             file: model.file
         }
+
+        // Corrections
+        // Metallic models appear very dark, so remove the metalness. Not sure if there is a better solution.
+        // See: https://discourse.threejs.org/t/ambient-light-and-gltf-models-not-working-results-in-black-model/7428/4
+        gltf.scene.traverse( child => {
+            if ( child.material ) child.material.metalness = 0;
+        });
 
         // Add to the scene.
         scene.add( gltf.scene );
@@ -434,6 +449,10 @@ function handleMouseClickEvents(renderer, width, height, camera, scene, onClickC
             if (selectedObject) {
                 break;
             }
+        }
+        if (!selectedObject) {
+            // Nothing was selected. Still call the callback to any previously selected object can be deselected.
+            onClickCallback({name: null, object: null});
         }
     }
     // Register both mouse and touch events.

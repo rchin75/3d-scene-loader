@@ -96,6 +96,86 @@ return /******/ (function(modules) { // webpackBootstrap
 /************************************************************************/
 /******/ ({
 
+/***/ "./src/boundingBox.js":
+/*!****************************!*\
+  !*** ./src/boundingBox.js ***!
+  \****************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return BoundingBox; });
+/* harmony import */ var three__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! three */ "three");
+/* harmony import */ var three__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(three__WEBPACK_IMPORTED_MODULE_0__);
+
+
+/**
+ * A bounding box that can be drawn in the scene.
+ */
+class BoundingBox {
+    /**
+     * Constructor.
+     * @param {Object} [params] Optional parameters {color, linewidth}.
+     */
+    constructor(params) {
+        const color = (params && params.color) ? params.color : 0x0000FF;
+        const linewidth = (params && params.lineWidth) ? params.lineWidth : 5;
+
+        const geometry = new three__WEBPACK_IMPORTED_MODULE_0__["BoxGeometry"]( 1,1,1 );
+        const material = new three__WEBPACK_IMPORTED_MODULE_0__["LineBasicMaterial"]( {color, linewidth} );
+        this._mesh = new three__WEBPACK_IMPORTED_MODULE_0__["LineSegments"] ( new three__WEBPACK_IMPORTED_MODULE_0__["EdgesGeometry"](geometry), material );
+        this._bounds = null;
+        this._center = {x:0,y:0,z:0};
+    }
+
+    /**
+     * Updates the bounding box' size and position.
+     * @param object The object to bound.
+     */
+    update(object) {
+        const helper = new three__WEBPACK_IMPORTED_MODULE_0__["BoxHelper"](object);
+        helper.geometry.computeBoundingBox();
+        this._bounds = helper.geometry.boundingBox;
+
+        const xSize = this._bounds.max.x - this._bounds.min.x;
+        const ySize = this._bounds.max.y - this._bounds.min.y;
+        const zSize = this._bounds.max.z - this._bounds.min.z;
+        this._center.x = this._bounds.min.x + xSize/2;
+        this._center.y = this._bounds.min.y + ySize/2;
+        this._center.z = this._bounds.min.z + zSize/2;
+
+        this._mesh.scale.set(xSize, ySize, zSize);
+        this._mesh.position.set(this._center.x,this._center.y,this._center.z);
+    }
+
+    /**
+     * Gets the mesh of the bounding box.
+     * @returns {LineSegments}
+     */
+    get mesh() {
+        return this._mesh;
+    }
+
+    /**
+     * Gets the bounds.
+     * @returns {Object}
+     */
+    get bounds() {
+        return this._bounds;
+    }
+
+    /**
+     * Gets the center of the bounding box.
+     * @returns {{x: number, y: number, z: number}}
+     */
+    get center() {
+        return this._center;
+    }
+}
+
+/***/ }),
+
 /***/ "./src/loadingPanel.js":
 /*!*****************************!*\
   !*** ./src/loadingPanel.js ***!
@@ -288,13 +368,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var three_examples_jsm_loaders_GLTFLoader_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! three/examples/jsm/loaders/GLTFLoader.js */ "three/examples/jsm/loaders/GLTFLoader.js");
 /* harmony import */ var three_examples_jsm_loaders_GLTFLoader_js__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(three_examples_jsm_loaders_GLTFLoader_js__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var _loadingPanel__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./loadingPanel */ "./src/loadingPanel.js");
+/* harmony import */ var _boundingBox__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./boundingBox */ "./src/boundingBox.js");
+
 
 
 
 
 
 const utils = {
-    LoadingPanel: _loadingPanel__WEBPACK_IMPORTED_MODULE_3__["default"]
+    LoadingPanel: _loadingPanel__WEBPACK_IMPORTED_MODULE_3__["default"],
+    BoundingBox: _boundingBox__WEBPACK_IMPORTED_MODULE_4__["default"]
 };
 
 /**
@@ -325,6 +408,9 @@ function createScene(config, params) {
 
     // Renderer
     const renderer = new three__WEBPACK_IMPORTED_MODULE_0__["WebGLRenderer"]({antialias: true});
+    // Correct lightning. See: https://discourse.threejs.org/t/whats-this-about-gammafactor/4264/5
+    renderer.gammaOutput = true;
+    // Deprecated: renderer.gammaFactor = 2.2;
 
     let canvas, width, height;
     if (canvasID) {
@@ -439,6 +525,8 @@ function createScene(config, params) {
         renderer.render(scene, camera);
     };
     animate();
+
+    return scene;
 }
 
 /**
@@ -540,6 +628,7 @@ function loadModel(model, scene, mixers, index, cb) {
             gltf.scene.rotateZ(model.rotateZ);
         }
 
+        // Meta data. Needed for the onClick handler.
         if (model.name) {
             gltf.scene.name = model.name;
         } else {
@@ -550,6 +639,13 @@ function loadModel(model, scene, mixers, index, cb) {
             clickable: model.clickable ? model.clickable : false,
             file: model.file
         }
+
+        // Corrections
+        // Metallic models appear very dark, so remove the metalness. Not sure if there is a better solution.
+        // See: https://discourse.threejs.org/t/ambient-light-and-gltf-models-not-working-results-in-black-model/7428/4
+        gltf.scene.traverse( child => {
+            if ( child.material ) child.material.metalness = 0;
+        });
 
         // Add to the scene.
         scene.add( gltf.scene );
@@ -724,6 +820,10 @@ function handleMouseClickEvents(renderer, width, height, camera, scene, onClickC
             if (selectedObject) {
                 break;
             }
+        }
+        if (!selectedObject) {
+            // Nothing was selected. Still call the callback to any previously selected object can be deselected.
+            onClickCallback({name: null, object: null});
         }
     }
     // Register both mouse and touch events.
