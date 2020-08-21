@@ -19,12 +19,14 @@ module.exports = [
         new CopyWebpackPlugin({
             patterns: [
                 {
-                    from: path.resolve(__dirname, 'example/*.html'),
-                    flatten: true
+                    from: path.resolve(__dirname, 'example', '**/*.html'),
+                    context: 'example/',
+                    flatten: false
                 },
                 {
-                    from: path.resolve(__dirname, 'example/*.css'),
-                    flatten: true
+                    from: path.resolve(__dirname, 'example', '**/*.css'),
+                    context: 'example/',
+                    flatten: false
                 },
             ],
         }),
