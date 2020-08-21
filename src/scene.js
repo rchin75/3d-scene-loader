@@ -16,6 +16,7 @@ export const utils = {
  * @param {string} [params.canvasID] Optional canvas to render to.
  * @param {Function} [params.onProgress] Optional callback function to keep track of loading progress.
  * @param {Function} [params.onClick] Optional callback function to handle click events.
+ * @param {boolean} [params.shadowsEnabled] Optional. True to calculate shadows.
  */
 export default function createScene(config, params) {
     const scene = new THREE.Scene();
@@ -23,7 +24,7 @@ export default function createScene(config, params) {
     const mixers = [];
     const clock = new THREE.Clock();
 
-    const {canvasID, onProgress, onClick} = params;
+    const {canvasID, onProgress, onClick, shadowsEnabled} = params;
 
     // Determine if and how to show loading progress.
     let progressHandler = null;
@@ -40,6 +41,11 @@ export default function createScene(config, params) {
     // Correct lightning. See: https://discourse.threejs.org/t/whats-this-about-gammafactor/4264/5
     renderer.gammaOutput = true;
     // Deprecated: renderer.gammaFactor = 2.2;
+    // Support shadows:
+    if (shadowsEnabled) {
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    }
 
     let canvas, width, height;
     if (canvasID) {
@@ -170,6 +176,15 @@ function addPointLight(light, scene) {
 
     const lightInstance = new THREE.PointLight(color, intensity, distance);
     lightInstance.position.set(...light.position);
+
+    // Shadows.
+    // Note: for this to work params.shadowsEnabled must be set to true in createScene.
+    lightInstance.castShadow = true;
+    // See: https://redstapler.co/threejs-realistic-light-shadow-tutorial/
+    lightInstance.shadow.bias = -0.0001;
+    lightInstance.shadow.mapSize.width = 1024*4;
+    lightInstance.shadow.mapSize.height = 1024*4;
+
     scene.add( lightInstance );
 }
 
@@ -192,6 +207,14 @@ function addDirectionalLight(light, scene) {
     } else {
         lightInstance.target.position.set(0, 0, 0);
     }
+    // Shadows.
+    // Note: for this to work params.shadowsEnabled must be set to true in createScene.
+    lightInstance.castShadow = true;
+    // See: https://redstapler.co/threejs-realistic-light-shadow-tutorial/
+    lightInstance.shadow.bias = -0.0001;
+    lightInstance.shadow.mapSize.width = 1024*4;
+    lightInstance.shadow.mapSize.height = 1024*4;
+
     scene.add(lightInstance);
     scene.add(lightInstance.target);
 }
@@ -275,6 +298,14 @@ function loadModel(model, scene, mixers, index, cb) {
         gltf.scene.traverse( child => {
             if ( child.material ) child.material.metalness = 0;
         });
+
+        // Shadows.
+        // Note: for this to work params.shadowsEnabled must be set to true in createScene.
+        gltf.scene.traverse(n => { if ( n.isMesh ) {
+            n.castShadow = model.castShadow !== undefined ? model.castShadow : true;
+            n.receiveShadow = model.receiveShadow !== undefined ? model.receiveShadow: true;
+            if(n.material.map) n.material.map.anisotropy = 16;
+        }});
 
         // Add to the scene.
         scene.add( gltf.scene );

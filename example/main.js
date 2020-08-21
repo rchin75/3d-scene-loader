@@ -10,6 +10,8 @@ import {utils} from "./../src/scene";
  * Run with npm run serve.
  */
 const canvasID = null;//'canvas';
+const shadowsEnabled = true;
+
 const config = {
     backgroundColor: 0xAACCFF,
     models: [
@@ -93,16 +95,14 @@ const config = {
     axis: true
 }
 
-const scene = createScene(config, {canvasID, onClick});
+const scene = createScene(config, {canvasID, onClick, shadowsEnabled});
 
 // Handle selection on click events.
 const boundingBox = new utils.BoundingBox();
 function onClick(event) {
     if (event.name) {
         console.log("You clicked on: " + event.name);
-
         boundingBox.update(event.object);
-
         scene.add( boundingBox.mesh );
     } else {
         scene.remove( boundingBox.mesh );
