@@ -24,7 +24,8 @@ const config = {
             rotateX: 0,
             rotateZ: 0,
             animate: false,
-            clickable: false
+            clickable: false,
+            castShadow: false
         },
         {
             name: 'windmill01',

@@ -39,8 +39,7 @@ export default function createScene(config, params) {
     // Renderer
     const renderer = new THREE.WebGLRenderer({antialias: true});
     // Correct lightning. See: https://discourse.threejs.org/t/whats-this-about-gammafactor/4264/5
-    renderer.gammaOutput = true;
-    // Deprecated: renderer.gammaFactor = 2.2;
+    renderer.outputEncoding = THREE.sRGBEncoding;
     // Support shadows:
     if (shadowsEnabled) {
         renderer.shadowMap.enabled = true;
