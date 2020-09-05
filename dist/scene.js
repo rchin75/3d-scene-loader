@@ -410,8 +410,7 @@ function createScene(config, params) {
     // Renderer
     const renderer = new three__WEBPACK_IMPORTED_MODULE_0__["WebGLRenderer"]({antialias: true});
     // Correct lightning. See: https://discourse.threejs.org/t/whats-this-about-gammafactor/4264/5
-    renderer.gammaOutput = true;
-    // Deprecated: renderer.gammaFactor = 2.2;
+    renderer.outputEncoding = three__WEBPACK_IMPORTED_MODULE_0__["sRGBEncoding"];
     // Support shadows:
     if (shadowsEnabled) {
         renderer.shadowMap.enabled = true;
@@ -637,18 +636,11 @@ function loadModel(model, scene, mixers, index, cb) {
         if (model.scale) {
             gltf.scene.scale.set(model.scale, model.scale, model.scale);
         }
-        // Rotate the model.
-        // Yaw
-        if (model.rotateY) {
-            gltf.scene.rotateY(model.rotateY);
-        }
-        // Pitch
-        if (model.rotateX) {
-            gltf.scene.rotateX(model.rotateX);
-        }
-        // Roll
-        if (model.rotateZ) {
-            gltf.scene.rotateZ(model.rotateZ);
+
+        // Rotate the model. See: https://threejs.org/docs/#api/en/math/Euler .
+        if (model.rotation && model.rotation.length === 3) {
+            const rotationOrder = model.rotationOrder ? model.rotationOrder : 'XYZ';
+            gltf.scene.rotation.set(model.rotation[0], model.rotation[1], model.rotation[2], rotationOrder);
         }
 
         // Meta data. Needed for the onClick handler.
