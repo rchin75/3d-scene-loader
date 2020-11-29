@@ -142,7 +142,7 @@ export default function createScene(config, params) {
 
     // Click events
     if (onClick && (onClick instanceof Function)) {
-        handleMouseClickEvents(renderer, width, height, camera, scene, onClick);
+        handleMouseClickEvents(renderer, canvas, camera, scene, onClick);
     }
 
     // Animate and render the scene.
@@ -435,24 +435,31 @@ function handleWindowResize(camera, renderer, canvasID) {
 /**
  * Handles mouse click events as well as touch events.
  * @param {Object} renderer The renderer.
- * @param {number} width Width of the canvas.
- * @param {number} height Height of the canvas.
+ * @param {Object} canvas The canvas.
  * @param camera The camera.
  * @param scene The scene.
  * @param {Function} onClickCallback On click callback function.
  */
-function handleMouseClickEvents(renderer, width, height, camera, scene, onClickCallback) {
+function handleMouseClickEvents(renderer, canvas, camera, scene, onClickCallback) {
     const rayCaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
+
+    // Determine the canvas bounds.
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    const rect = canvas.getBoundingClientRect();
+    const left = rect.left;
+    const top = rect.top;
+
     const onClick = function(event) {
         if (event.touches) {
             // Touch event.
-            mouse.x = ( event.touches[0].clientX / width ) * 2 - 1;
-            mouse.y = - ( event.touches[0].clientY / height ) * 2 + 1;
+            mouse.x = ( (event.touches[0].clientX - left) / width ) * 2 - 1;
+            mouse.y = - ( (event.touches[0].clientY - top) / height ) * 2 + 1;
         } else {
             // Mouse event.
-            mouse.x = ( event.clientX / width ) * 2 - 1;
-            mouse.y = - ( event.clientY / height ) * 2 + 1;
+            mouse.x = ( (event.clientX - left) / width ) * 2 - 1;
+            mouse.y = - ( (event.clientY - top) / height ) * 2 + 1;
         }
         rayCaster.setFromCamera(mouse, camera);
         const intersects = rayCaster.intersectObjects( scene.children, true );
