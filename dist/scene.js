@@ -369,6 +369,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var three_examples_jsm_loaders_GLTFLoader_js__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(three_examples_jsm_loaders_GLTFLoader_js__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var _loadingPanel__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./loadingPanel */ "./src/loadingPanel.js");
 /* harmony import */ var _boundingBox__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./boundingBox */ "./src/boundingBox.js");
+// @ts-check
+
+
+// Added separately for JSDoc type checking:
 
 
 
@@ -513,7 +517,7 @@ function createScene(config, params) {
 
     // Click events
     if (onClick && (onClick instanceof Function)) {
-        handleMouseClickEvents(renderer, width, height, camera, scene, onClick);
+        handleMouseClickEvents(renderer, canvas, camera, scene, onClick);
     }
 
     // Animate and render the scene.
@@ -537,7 +541,7 @@ function createScene(config, params) {
 /**
  * Adds a point light.
  * @param {Object} light The light configuration.
- * @param scene The scene.
+ * @param {Scene} scene The scene.
  */
 function addPointLight(light, scene) {
     const color = light.color ? light.color : 0xFFFFFF;
@@ -561,7 +565,7 @@ function addPointLight(light, scene) {
 /**
  * Adds a directional light to the scene.
  * @param {Object} light The light configuration.
- * @param scene The scene.
+ * @param {Scene} scene The scene.
  */
 function addDirectionalLight(light, scene) {
     const color = (light && light.color) ? light.color : 0xFFFFFF;
@@ -592,7 +596,7 @@ function addDirectionalLight(light, scene) {
 /**
  * Adds ambient light to the scene.
  * @param {Object} ambientLight Ambient light configuration.
- * @param scene The scene.
+ * @param {Scene} scene The scene.
  */
 function addAmbientLight(ambientLight, scene) {
     const color = (ambientLight && ambientLight.color) ? ambientLight.color : 0xFFFFFF;
@@ -614,7 +618,7 @@ function createBox() {
 /**
  * Loads a model.
  * @param {Object} model The model to load.
- * @param scene The scene.
+ * @param {Scene} scene The scene.
  * @param {Array} mixers The array of mixers.
  * @param {number} index The model index.
  * @param {Function} cb Callback function to keep track of progress.
@@ -732,7 +736,7 @@ function updateTotalProgress(modelFile, numberOfModels, progress, totalProgress)
 /**
  * Creates a skybox.
  * @param {Object} skybox Skybox configuration.
- * @param scene The scene.
+ * @param {Scene} scene The scene.
  */
 function createSkybox(skybox, scene) {
     const materialArray = [];
@@ -764,7 +768,7 @@ function createSkybox(skybox, scene) {
 /**
  * Adds a floor.
  * @param {Object} floor Floor configuration.
- * @param scene The scene.
+ * @param {Scene} scene The scene.
  */
 function addFloor(floor, scene) {
     const size = floor.size ? floor.size : 1000
@@ -781,8 +785,8 @@ function addFloor(floor, scene) {
 
 /**
  * Handles resizing of the browser window.
- * @param camera Camera.
- * @param renderer Renderer.
+ * @param {PerspectiveCamera} camera Camera.
+ * @param {WebGLRenderer} renderer Renderer.
  * @param {String} canvasID Canvas ID.
  */
 function handleWindowResize(camera, renderer, canvasID) {
@@ -805,25 +809,32 @@ function handleWindowResize(camera, renderer, canvasID) {
 
 /**
  * Handles mouse click events as well as touch events.
- * @param {Object} renderer The renderer.
- * @param {number} width Width of the canvas.
- * @param {number} height Height of the canvas.
- * @param camera The camera.
- * @param scene The scene.
+ * @param {WebGLRenderer} renderer The renderer.
+ * @param {HTMLElement} canvas The canvas.
+ * @param {PerspectiveCamera} camera The camera.
+ * @param {Scene} scene The scene.
  * @param {Function} onClickCallback On click callback function.
  */
-function handleMouseClickEvents(renderer, width, height, camera, scene, onClickCallback) {
+function handleMouseClickEvents(renderer, canvas, camera, scene, onClickCallback) {
     const rayCaster = new three__WEBPACK_IMPORTED_MODULE_0__["Raycaster"]();
     const mouse = new three__WEBPACK_IMPORTED_MODULE_0__["Vector2"]();
+
+    // Determine the canvas bounds.
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    const rect = canvas.getBoundingClientRect();
+    const left = rect.left;
+    const top = rect.top;
+
     const onClick = function(event) {
         if (event.touches) {
             // Touch event.
-            mouse.x = ( event.touches[0].clientX / width ) * 2 - 1;
-            mouse.y = - ( event.touches[0].clientY / height ) * 2 + 1;
+            mouse.x = ( (event.touches[0].clientX - left) / width ) * 2 - 1;
+            mouse.y = - ( (event.touches[0].clientY - top) / height ) * 2 + 1;
         } else {
             // Mouse event.
-            mouse.x = ( event.clientX / width ) * 2 - 1;
-            mouse.y = - ( event.clientY / height ) * 2 + 1;
+            mouse.x = ( (event.clientX - left) / width ) * 2 - 1;
+            mouse.y = - ( (event.clientY - top) / height ) * 2 + 1;
         }
         rayCaster.setFromCamera(mouse, camera);
         const intersects = rayCaster.intersectObjects( scene.children, true );

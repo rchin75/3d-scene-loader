@@ -1,4 +1,8 @@
+// @ts-check
+
 import * as THREE from 'three';
+// Added separately for JSDoc type checking:
+import {Scene, PerspectiveCamera, WebGLRenderer} from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import LoadingPanel from "./loadingPanel";
@@ -166,7 +170,7 @@ export default function createScene(config, params) {
 /**
  * Adds a point light.
  * @param {Object} light The light configuration.
- * @param scene The scene.
+ * @param {Scene} scene The scene.
  */
 function addPointLight(light, scene) {
     const color = light.color ? light.color : 0xFFFFFF;
@@ -190,7 +194,7 @@ function addPointLight(light, scene) {
 /**
  * Adds a directional light to the scene.
  * @param {Object} light The light configuration.
- * @param scene The scene.
+ * @param {Scene} scene The scene.
  */
 function addDirectionalLight(light, scene) {
     const color = (light && light.color) ? light.color : 0xFFFFFF;
@@ -221,7 +225,7 @@ function addDirectionalLight(light, scene) {
 /**
  * Adds ambient light to the scene.
  * @param {Object} ambientLight Ambient light configuration.
- * @param scene The scene.
+ * @param {Scene} scene The scene.
  */
 function addAmbientLight(ambientLight, scene) {
     const color = (ambientLight && ambientLight.color) ? ambientLight.color : 0xFFFFFF;
@@ -243,7 +247,7 @@ function createBox() {
 /**
  * Loads a model.
  * @param {Object} model The model to load.
- * @param scene The scene.
+ * @param {Scene} scene The scene.
  * @param {Array} mixers The array of mixers.
  * @param {number} index The model index.
  * @param {Function} cb Callback function to keep track of progress.
@@ -361,7 +365,7 @@ function updateTotalProgress(modelFile, numberOfModels, progress, totalProgress)
 /**
  * Creates a skybox.
  * @param {Object} skybox Skybox configuration.
- * @param scene The scene.
+ * @param {Scene} scene The scene.
  */
 function createSkybox(skybox, scene) {
     const materialArray = [];
@@ -393,7 +397,7 @@ function createSkybox(skybox, scene) {
 /**
  * Adds a floor.
  * @param {Object} floor Floor configuration.
- * @param scene The scene.
+ * @param {Scene} scene The scene.
  */
 function addFloor(floor, scene) {
     const size = floor.size ? floor.size : 1000
@@ -410,8 +414,8 @@ function addFloor(floor, scene) {
 
 /**
  * Handles resizing of the browser window.
- * @param camera Camera.
- * @param renderer Renderer.
+ * @param {PerspectiveCamera} camera Camera.
+ * @param {WebGLRenderer} renderer Renderer.
  * @param {String} canvasID Canvas ID.
  */
 function handleWindowResize(camera, renderer, canvasID) {
@@ -434,10 +438,10 @@ function handleWindowResize(camera, renderer, canvasID) {
 
 /**
  * Handles mouse click events as well as touch events.
- * @param {Object} renderer The renderer.
- * @param {Object} canvas The canvas.
- * @param camera The camera.
- * @param scene The scene.
+ * @param {WebGLRenderer} renderer The renderer.
+ * @param {HTMLElement} canvas The canvas.
+ * @param {PerspectiveCamera} camera The camera.
+ * @param {Scene} scene The scene.
  * @param {Function} onClickCallback On click callback function.
  */
 function handleMouseClickEvents(renderer, canvas, camera, scene, onClickCallback) {
